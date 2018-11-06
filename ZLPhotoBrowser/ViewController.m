@@ -208,6 +208,7 @@
 - (IBAction)btnSelectPhotoLibrary:(id)sender
 {
     [self showWithPreview:NO];
+    
 }
 
 - (void)showWithPreview:(BOOL)preview
@@ -217,7 +218,8 @@
     if (preview) {
         [a showPreviewAnimated:YES];
     } else {
-        [a showPhotoLibrary];
+//        [a showPhotoLibrary];
+        [a showCustomCamera];
     }
 }
 

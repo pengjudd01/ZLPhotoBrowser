@@ -46,8 +46,6 @@
  */
 - (void)onOpenGallery;
 
-- (void)onDismiss;
-
 @end
 
 @interface CameraToolView : UIView <CAAnimationDelegate, UIGestureRecognizerDelegate>
@@ -59,7 +57,6 @@
         unsigned int retake : 1;
         unsigned int okClick : 1;
         unsigned int openGallery : 1;
-        unsigned int dismiss : 1;
     } _delegateFlag;
     
     //避免动画及长按手势触发两次
@@ -74,7 +71,6 @@
 @property (nonatomic, strong) UIColor *circleProgressColor;
 @property (nonatomic, assign) NSInteger maxRecordDuration;
 
-@property (nonatomic, strong) UIButton *dismissBtn;
 @property (nonatomic, strong) UIButton *photoBtn;
 @property (nonatomic, strong) UIButton *cancelBtn;
 @property (nonatomic, strong) UIButton *doneBtn;
@@ -120,7 +116,6 @@
     _delegateFlag.finishRecord = [delegate respondsToSelector:@selector(onFinishRecord)];
     _delegateFlag.retake = [delegate respondsToSelector:@selector(onRetake)];
     _delegateFlag.okClick = [delegate respondsToSelector:@selector(onOkClick)];
-    _delegateFlag.dismiss = [delegate respondsToSelector:@selector(onDismiss)];
     _delegateFlag.openGallery = [delegate respondsToSelector:@selector(onOpenGallery)];
 }
 
@@ -139,9 +134,7 @@
     self.topView.center = self.bottomView.center;
     self.topView.layer.cornerRadius = height*kTopViewScale/2;
     
-    self.dismissBtn.frame = CGRectMake(60, self.bounds.size.height/2-25/2, 25, 25);
-    
-    self.photoBtn.frame = CGRectMake(self.bounds.size.width - 96, self.bounds.size.height/2-36/2, 36, 36);
+    self.photoBtn.frame = CGRectMake(60, self.bounds.size.height/2-36/2, 36, 36);
 
     self.cancelBtn.frame = self.bottomView.frame;
     self.cancelBtn.layer.cornerRadius = height*kBottomViewScale/2;
@@ -183,14 +176,8 @@
     self.topView.userInteractionEnabled = NO;
     [self addSubview:self.topView];
     
-    self.dismissBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-    self.dismissBtn.frame = CGRectMake(60, self.bounds.size.height/2-25/2, 25, 25);
-    [self.dismissBtn setImage:GetImageWithName(@"zl_arrow_down") forState:UIControlStateNormal];
-    [self.dismissBtn addTarget:self action:@selector(dismissVC) forControlEvents:UIControlEventTouchUpInside];
-    [self addSubview:self.dismissBtn];
-    
     self.photoBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-    self.photoBtn.frame = CGRectMake(self.bounds.size.width - 96, self.bounds.size.height/2-36/2, 36, 36);
+    self.photoBtn.frame = CGRectMake(60, self.bounds.size.height/2-36/2, 36, 36);
     [self.photoBtn setImage:GetImageWithName(@"zl_btn_gallery") forState:UIControlStateNormal];
     [self.photoBtn addTarget:self action:@selector(openGallery) forControlEvents:UIControlEventTouchDragInside];
     [self.photoBtn.imageView setContentMode:UIViewContentModeCenter];
@@ -257,7 +244,6 @@
 #pragma mark - 动画
 - (void)startAnimate
 {
-    self.dismissBtn.hidden = YES;
     self.photoBtn.hidden = YES;
     
     [UIView animateWithDuration:kAnimateDuration animations:^{
@@ -284,7 +270,6 @@
     
     self.bottomView.hidden = YES;
     self.topView.hidden = YES;
-    self.dismissBtn.hidden = YES;
     self.photoBtn.hidden = YES;
     
     self.bottomView.layer.transform = CATransform3DIdentity;
@@ -325,7 +310,6 @@
         [self.animateLayer removeAllAnimations];
         [self.animateLayer removeFromSuperlayer];
     }
-    self.dismissBtn.hidden = NO;
     self.photoBtn.hidden = NO;
     self.bottomView.hidden = NO;
     self.topView.hidden = NO;
@@ -337,10 +321,6 @@
 }
 
 #pragma mark - btn actions
-- (void)dismissVC
-{
-    if (_delegateFlag.dismiss) [self.delegate performSelector:@selector(onDismiss)];
-}
 
 - (void)retake
 {
@@ -386,6 +366,8 @@
 @property (nonatomic, strong) AVCaptureVideoPreviewLayer *previewLayer;
 //切换摄像头按钮
 @property (nonatomic, strong) UIButton *toggleCameraBtn;
+//取消按钮
+@property (nonatomic, strong) UIButton *dismissBtn;
 //聚焦图
 @property (nonatomic, strong) UIImageView *focusCursorImageView;
 //录制视频保存的url
@@ -428,7 +410,7 @@
             if (self.allowRecordVideo) {
                 [AVCaptureDevice requestAccessForMediaType:AVMediaTypeAudio completionHandler:^(BOOL granted) {
                     if (!granted) {
-                        [self onDismiss];
+                        [self dismissBtnClick];
                     } else {
                         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(willResignActive) name:UIApplicationWillResignActiveNotification object:nil];
                     }
@@ -437,7 +419,7 @@
                 [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(willResignActive) name:UIApplicationWillResignActiveNotification object:nil];
             }
         } else {
-            [self onDismiss];
+            [self dismissBtnClick];
         }
     }];
     
@@ -535,6 +517,7 @@
     self.toolView.frame = CGRectMake(0, kViewHeight-130-ZL_SafeAreaBottom, kViewWidth, 100);
     self.previewLayer.frame = self.view.layer.bounds;
     self.toggleCameraBtn.frame = CGRectMake(kViewWidth-50, 20, 30, 30);
+    self.dismissBtn.frame = CGRectMake(20, 20, 30, 30);
 }
 
 - (void)setupUI
@@ -560,6 +543,11 @@
     [self.toggleCameraBtn setImage:GetImageWithName(@"zl_toggle_camera") forState:UIControlStateNormal];
     [self.toggleCameraBtn addTarget:self action:@selector(btnToggleCameraAction) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:self.toggleCameraBtn];
+
+    self.dismissBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    [self.dismissBtn setImage:GetImageWithName(@"zl_arrow_down") forState:UIControlStateNormal];
+    [self.dismissBtn addTarget:self action:@selector(dismissBtnClick) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:self.dismissBtn];
     
     if (self.allowRecordVideo) {
         UIPanGestureRecognizer *pan = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(adjustCameraFocus:)];
@@ -639,6 +627,15 @@
         case ZLCaptureSessionPreset3840x2160:
             return AVCaptureSessionPreset3840x2160;
     }
+}
+
+#pragma mark - 取消
+
+- (void)dismissBtnClick
+{
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self dismissViewControllerAnimated:YES completion:nil];
+    });
 }
 
 #pragma mark - 点击屏幕设置聚焦点
@@ -943,14 +940,6 @@
 //    };
 //
     return actionSheet;
-}
-
-//dismiss
-- (void)onDismiss
-{
-    dispatch_async(dispatch_get_main_queue(), ^{
-        [self dismissViewControllerAnimated:YES completion:nil];
-    });
 }
 
 - (void)playVideo
