@@ -16,6 +16,8 @@
 #import "ZLPhotoManager.h"
 #import "ZLProgressHUD.h"
 #import "ZLPhotoConfiguration.h"
+#import "ZLCustomCamera.h"
+#import "ZLDefine.h"
 
 ///////////////////////////////////////////////////
 // git 地址： https://github.com/longitachi/ZLPhotoBrowser
@@ -111,7 +113,7 @@
     //设置在内部拍照按钮上实时显示相机俘获画面
     actionSheet.configuration.showCaptureImageOnTakePhotoBtn = self.showCaptureImageSwitch.isOn;
     //设置照片最大预览数
-    actionSheet.configuration.maxPreviewCount = self.previewTextField.text.integerValue;
+    actionSheet.configuration.maxPreviewCount = 0;
     //设置照片最大选择数
     actionSheet.configuration.maxSelectCount = self.maxSelCountTextField.text.integerValue;
     //设置允许选择的视频最大时长
@@ -200,6 +202,8 @@
 {
     [self showWithPreview:YES];
 }
+
+
 
 - (IBAction)btnSelectPhotoLibrary:(id)sender
 {
