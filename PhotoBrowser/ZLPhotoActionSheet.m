@@ -39,7 +39,6 @@ double const ScalePhotoWidth = 1000;
 @property (weak, nonatomic) IBOutlet UICollectionView *collectionView;
 @property (weak, nonatomic) IBOutlet NSLayoutConstraint *verColHeight;
 @property (weak, nonatomic) IBOutlet NSLayoutConstraint *verBottomSpace;
-@property (nonatomic, strong) ZLCustomCamera *camera;
 
 @property (nonatomic, assign) BOOL animate;
 @property (nonatomic, assign) BOOL preview;
@@ -514,19 +513,19 @@ double const ScalePhotoWidth = 1000;
             [self hide];
             return;
         }
-        self.camera = [[ZLCustomCamera alloc] init];
-        self.camera.allowTakePhoto = self.configuration.allowSelectImage;
-        self.camera.allowRecordVideo = self.configuration.allowSelectVideo && self.configuration.allowRecordVideo;
-        self.camera.sessionPreset = self.configuration.sessionPreset;
-        self.camera.videoType = self.configuration.exportVideoType;
-        self.camera.circleProgressColor = self.configuration.bottomBtnsNormalTitleColor;
-        self.camera.maxRecordDuration = self.configuration.maxRecordDuration;
+        ZLCustomCamera *camera = [[ZLCustomCamera alloc] init];
+        camera.allowTakePhoto = self.configuration.allowSelectImage;
+        camera.allowRecordVideo = self.configuration.allowSelectVideo && self.configuration.allowRecordVideo;
+        camera.sessionPreset = self.configuration.sessionPreset;
+        camera.videoType = self.configuration.exportVideoType;
+        camera.circleProgressColor = self.configuration.bottomBtnsNormalTitleColor;
+        camera.maxRecordDuration = self.configuration.maxRecordDuration;
         zl_weakify(self);
-        self.camera.doneBlock = ^(UIImage *image, NSURL *videoUrl) {
+        camera.doneBlock = ^(UIImage *image, NSURL *videoUrl) {
             zl_strongify(weakSelf);
             [strongSelf saveImage:image videoUrl:videoUrl];
         };
-        [self.sender showDetailViewController:self.camera sender:nil];
+        [self.sender showDetailViewController:camera sender:nil];
     }
 }
 
@@ -899,9 +898,6 @@ double const ScalePhotoWidth = 1000;
 
 - (void)saveImage:(UIImage *)image videoUrl:(NSURL *)videoUrl
 {
-    if (self.doneBlock) {
-        self.doneBlock(image, videoUrl);
-    }
     ZLProgressHUD *hud = [[ZLProgressHUD alloc] init];
     [hud show];
     zl_weakify(self);
