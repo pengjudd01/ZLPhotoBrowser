@@ -801,6 +801,11 @@
 {
     AVCaptureConnection *movieConnection = [self.movieFileOutPut connectionWithMediaType:AVMediaTypeVideo];
     movieConnection.videoOrientation = self.orientation;
+    if (@available(iOS 11.0, *)) {
+        NSMutableDictionary *dic = [NSMutableDictionary dictionary];
+        dic[(id)AVVideoCodecKey] = AVVideoCodecH264;
+        [self.movieFileOutPut setOutputSettings:dic forConnection:movieConnection];
+    }
     [movieConnection setVideoScaleAndCropFactor:1.0];
     if (![self.movieFileOutPut isRecording]) {
         NSURL *url = [NSURL fileURLWithPath:[ZLPhotoManager getVideoExportFilePath:self.videoType]];
