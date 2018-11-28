@@ -77,6 +77,8 @@
 
 @property (nonatomic, assign) CGFloat duration;
 
+@property (nonatomic, strong) UILabel *descLabel;
+
 @end
 
 @implementation CameraToolView
@@ -138,6 +140,10 @@
     
     self.doneBtn.frame = self.bottomView.frame;
     self.doneBtn.layer.cornerRadius = height*kBottomViewScale/2;
+    
+    self.descLabel.frame = CGRectMake(0, 0, 180, 30);
+    self.descLabel.text = self.allowRecordVideo ? @"单击拍照，长按拍视频" : @"单击拍照";
+    self.descLabel.center = CGPointMake(self.topView.center.x, self.topView.center.y - 50);
 }
 
 - (void)setAllowTakePhoto:(BOOL)allowTakePhoto
@@ -195,11 +201,18 @@
     self.doneBtn.layer.masksToBounds = YES;
     self.doneBtn.hidden = YES;
     [self addSubview:self.doneBtn];
+    
+    self.descLabel = [[UILabel alloc] init];
+    self.descLabel.textColor = [UIColor whiteColor];
+    self.descLabel.textAlignment = NSTextAlignmentCenter;
+    self.descLabel.font = [UIFont systemFontOfSize:12];
+    [self addSubview:self.descLabel];
 }
 
 #pragma mark - GestureRecognizer
 - (void)tapAction:(UITapGestureRecognizer *)tap
 {
+    self.descLabel.hidden = YES;
     [self stopAnimate];
     if (_delegateFlag.takePic) [self.delegate performSelector:@selector(onTakePicture)];
 }
@@ -241,6 +254,7 @@
 - (void)startAnimate
 {
     self.dismissBtn.hidden = YES;
+    self.descLabel.hidden = YES;
     
     [UIView animateWithDuration:kAnimateDuration animations:^{
         self.bottomView.layer.transform = CATransform3DScale(CATransform3DIdentity, 1/kBottomViewScale, 1/kBottomViewScale, 1);
@@ -880,7 +894,13 @@
         if (self.allowTakePhoto) {
             //视频长度小于1s 允许拍照则拍照，不允许拍照，则保存小于1s的视频
             NSLog(@"视频长度小于1s，按拍照处理");
-            [self onTakePicture];
+//            [self onTakePicture];
+            [self.toolView retake];
+            self.toolView.descLabel.hidden = NO;
+            self.toolView.descLabel.text = @"视频时间太短了";
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                self.toolView.descLabel.hidden = YES;
+            });
             return;
         }
     }
