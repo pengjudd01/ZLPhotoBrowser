@@ -588,6 +588,7 @@
     }
     
     self.movieFileOutPut = [[AVCaptureMovieFileOutput alloc] init];
+    self.movieFileOutPut.movieFragmentInterval = kCMTimeInvalid;
     
     //将视频及音频输入流添加到session
     if ([self.session canAddInput:self.videoInput]) {
